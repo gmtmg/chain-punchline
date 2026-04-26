@@ -1,0 +1,18 @@
+{
+  "name": "yabo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch server/index.ts",
+    "build": "bun build client/main.ts --outdir public --minify && cp client/index.html public/index.html && cp client/styles.css public/styles.css",
+    "start": "bun run server/index.ts"
+  },
+  "dependencies": {
+    "hono": "^4.7.0",
+    "tone": "^15.1.22"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.0",
+    "typescript": "^5.7.0"
+  }
+}

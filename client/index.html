@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>連結大喜利</title>
+  <link rel="stylesheet" href="styles.css?v=6" />
+</head>
+<body>
+  <div id="app">
+    <!-- Lobby -->
+    <div id="screen-lobby" class="screen active">
+      <div class="logo">
+        <span class="logo-sub">~ みんなで ~</span>
+        <h1 class="logo-main">
+          <span class="logo-char lc1" style="animation-delay:0s">連</span>
+          <span class="logo-char lc2" style="animation-delay:0.08s">結</span>
+          <span class="logo-char lc3" style="animation-delay:0.16s">大</span>
+          <span class="logo-char lc4" style="animation-delay:0.24s">喜</span>
+          <span class="logo-char lc5" style="animation-delay:0.32s">利</span>
+          <span class="logo-char lc-bang" style="animation-delay:0.4s">!</span>
+        </h1>
+      </div>
+      <div class="lobby-form">
+        <input type="text" id="player-name" placeholder="名前を入力" maxlength="8" autocomplete="off" />
+        <button id="btn-create" class="btn btn-primary">部屋を作る</button>
+        <div class="divider">または</div>
+        <div class="join-row">
+          <input type="text" id="room-code" placeholder="部屋コード" maxlength="4" autocomplete="off" style="text-transform:uppercase" />
+          <button id="btn-join" class="btn btn-secondary">参加</button>
+        </div>
+      </div>
+      <p id="lobby-error" class="error"></p>
+    </div>
+
+    <!-- Waiting Room -->
+    <div id="screen-waiting" class="screen">
+      <h2>部屋コード: <span id="display-room-code" class="room-code"></span></h2>
+      <div id="player-list" class="player-list"></div>
+      <button id="btn-start" class="btn btn-primary" style="display:none">ゲーム開始</button>
+      <p class="hint" id="waiting-hint">ホストがゲームを開始するのを待っています...</p>
+    </div>
+
+    <!-- Game Mode Select -->
+    <div id="screen-game-mode" class="screen">
+      <h2 class="section-title">回答モード選択</h2>
+      <p class="game-mode-desc">回答方法を選んでね！</p>
+      <div class="game-mode-btns">
+        <button class="game-mode-btn selected" data-mode="card">
+          <span class="game-mode-badge">おすすめ</span>
+          <span class="game-mode-icon">&#x1F0CF;</span>
+          <span class="game-mode-name">カード選択モード</span>
+          <span class="game-mode-detail">配られたカードから選ぶ</span>
+        </button>
+        <button class="game-mode-btn" data-mode="free">
+          <span class="game-mode-icon">&#x270F;&#xFE0F;</span>
+          <span class="game-mode-name">フリー入力モード</span>
+          <span class="game-mode-detail">15文字以内で自由に入力</span>
+        </button>
+      </div>
+      <button id="btn-game-mode-next" class="btn btn-primary" style="display:none">次へ</button>
+      <p class="hint" id="game-mode-hint" style="display:none">ホストがモードを選んでいます...</p>
+    </div>
+
+    <!-- Beat Select (host only, between waiting and writing) -->
+    <div id="screen-beat-select" class="screen">
+      <h2 class="section-title">ビートレベル選択</h2>
+      <p class="beat-select-desc">制限時間を選んでね！</p>
+      <div class="beat-level-btns">
+        <button class="beat-level-btn selected" data-level="1">
+          <span class="beat-level-num">Lv.1</span>
+          <span class="beat-level-time">8秒</span>
+          <span class="beat-level-label">のんびり</span>
+        </button>
+        <button class="beat-level-btn" data-level="2">
+          <span class="beat-level-num">Lv.2</span>
+          <span class="beat-level-time">6秒</span>
+          <span class="beat-level-label">ふつう</span>
+        </button>
+        <button class="beat-level-btn" data-level="3">
+          <span class="beat-level-num">Lv.3</span>
+          <span class="beat-level-time">4秒</span>
+          <span class="beat-level-label">はやい！</span>
+        </button>
+      </div>
+      <div id="beat-timer-bar" class="timer-bar" style="margin-top:16px"><div id="beat-timer-fill" class="timer-fill"></div></div>
+      <button id="btn-beat-start" class="btn btn-primary" style="display:none">この設定でスタート！</button>
+      <p class="hint" id="beat-select-hint" style="display:none">ホストがビートレベルを選んでいます...</p>
+    </div>
+
+    <!-- Writing -->
+    <div id="screen-writing" class="screen">
+      <div class="writing-round-info">ラウンド <span id="writing-round"></span> / 3</div>
+      <div id="writing-topic" class="writing-topic"></div>
+      <div id="writing-prev-fields" class="writing-prev-fields"></div>
+      <div id="answer-card-grid" class="answer-card-grid"></div>
+      <button id="btn-submit-field" class="btn btn-primary btn-submit" disabled>決定</button>
+      <div id="writing-timer-bar" class="timer-bar"><div id="writing-timer-fill" class="timer-fill"></div></div>
+      <div id="writing-progress" class="writing-progress"></div>
+    </div>
+
+    <!-- Reveal -->
+    <div id="screen-reveal" class="screen">
+      <div id="reveal-card-info" class="reveal-card-info"></div>
+      <div id="reveal-topic" class="reveal-topic"></div>
+      <div id="reveal-fields" class="reveal-fields"></div>
+      <div id="reaction-area" class="reaction-area" style="display:none">
+        <button class="reaction-btn" data-type="kusa">
+          <span class="reaction-emoji">草</span>
+          <span class="reaction-remaining" id="remaining-kusa">3</span>
+        </button>
+        <button class="reaction-btn" data-type="warota">
+          <span class="reaction-emoji">ワロタ</span>
+          <span class="reaction-remaining" id="remaining-warota">2</span>
+        </button>
+        <button class="reaction-btn" data-type="kusawarota">
+          <span class="reaction-emoji">クソワロタ</span>
+          <span class="reaction-remaining" id="remaining-kusawarota">1</span>
+        </button>
+      </div>
+      <div id="floating-reactions" class="floating-reactions"></div>
+    </div>
+
+    <!-- Results -->
+    <div id="screen-results" class="screen">
+      <h2 class="section-title">結果発表</h2>
+      <div id="results-list" class="results-list"></div>
+      <button id="btn-back-lobby" class="btn btn-primary" style="display:none">ロビーに戻る</button>
+    </div>
+  </div>
+
+  <!-- Countdown overlay -->
+  <div id="countdown-overlay" class="countdown-overlay" style="display:none">
+    <span id="countdown-number" class="countdown-number"></span>
+  </div>
+
+  <!-- Audio notification modal -->
+  <div id="audio-modal" class="modal-overlay" style="display:none">
+    <div class="modal-box">
+      <div class="modal-icon">&#x1f50a;</div>
+      <p class="modal-text">このゲームは音が鳴ります！</p>
+      <button id="btn-audio-ok" class="btn btn-primary">OK</button>
+    </div>
+  </div>
+
+  <script src="main.js?v=6"></script>
+</body>
+</html>
