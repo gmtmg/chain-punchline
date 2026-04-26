@@ -22,7 +22,7 @@ export function revealFieldMs(fieldText: string): number {
 }
 
 // ── Game Settings ──
-export const MIN_PLAYERS = 3;
+export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 8;
 export const MAX_FIELD_LENGTH = 15;
 export const WRITING_ROUNDS = 3;
