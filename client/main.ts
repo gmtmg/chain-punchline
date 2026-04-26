@@ -544,6 +544,7 @@ function onMessage(msg: ServerMessage) {
       stopAllBgm();
       playWritingBeat(selectedBeatLevel);
       renderWritingScreen(msg);
+      speakTopic(msg.topic);
       break;
     }
 
