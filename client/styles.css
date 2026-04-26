@@ -571,11 +571,15 @@ input[type="text"]::placeholder {
 }
 
 .writing-topic {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 900;
-  color: var(--pink);
+  color: #fff;
   text-align: center;
   margin-bottom: 16px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  border-radius: 12px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
   animation: topicPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -702,11 +706,15 @@ input[type="text"]::placeholder {
 }
 
 .reveal-topic {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 900;
-  color: var(--pink);
+  color: #fff;
   text-align: center;
   margin-bottom: 20px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  border-radius: 12px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
   animation: topicPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 

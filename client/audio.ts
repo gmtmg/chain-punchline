@@ -624,36 +624,6 @@ export function stopPreview() {
   previewPlaying = false;
 }
 
-// ── Speech (TTS) ──
-function cleanTextForSpeech(text: string): string {
-  return text.replace(/[・…．\.·•‥]+/g, "").trim();
-}
-
-function speak(text: string, pitch: number, rate: number): void {
-  const synth = window.speechSynthesis;
-  if (!synth || !document.hasFocus()) return;
-  const clean = cleanTextForSpeech(text);
-  if (!clean) return;
-  const utter = new SpeechSynthesisUtterance(clean);
-  utter.lang = "ja-JP";
-  utter.pitch = pitch;
-  utter.rate = rate;
-  synth.speak(utter);
-}
-
-export function speakTopic(text: string): void {
-  cancelSpeech();
-  speak(text, 0.3, 0.8);
-}
-
-export function speakField(text: string): void {
-  speak(text, 1.4, 1.0);
-}
-
-export function cancelSpeech(): void {
-  window.speechSynthesis?.cancel();
-}
-
 // ── SE ──
 export function playSE(name: "click" | "join" | "transition") {
   if (!audioInitialized) return;

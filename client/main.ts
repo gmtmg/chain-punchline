@@ -1,7 +1,7 @@
 import type { ServerMessage, ReactionType, AnswerOption, GameMode } from "../shared/types";
 import { BEAT_DURATIONS, MAX_FIELD_LENGTH } from "../shared/constants";
 import { connect, send } from "./ws-client";
-import { initAudio, playLobbyBgm, playWaitingBgm, playModeSelectBgm, stopAllBgm, playSE, playWritingBeat, stopWritingBeat, previewBeat, stopPreview, speakTopic, speakField } from "./audio";
+import { initAudio, playLobbyBgm, playWaitingBgm, playModeSelectBgm, stopAllBgm, playSE, playWritingBeat, stopWritingBeat, previewBeat, stopPreview } from "./audio";
 
 // ── State ──
 let myPlayerId = "";
@@ -544,7 +544,6 @@ function onMessage(msg: ServerMessage) {
       stopAllBgm();
       playWritingBeat(selectedBeatLevel);
       renderWritingScreen(msg);
-      speakTopic(msg.topic);
       break;
     }
 
@@ -574,8 +573,6 @@ function onMessage(msg: ServerMessage) {
 
       $("reaction-area").style.display = "none";
       showScreen("screen-reveal");
-      // Show topic text first, then speak after a brief pause
-      setTimeout(() => speakTopic(msg.topic), 600);
       break;
     }
 
@@ -590,7 +587,6 @@ function onMessage(msg: ServerMessage) {
         ) as HTMLElement;
         textEl.textContent = msg.text;
         authorEl.textContent = msg.authorName;
-        speakField(msg.text);
       }
       break;
     }

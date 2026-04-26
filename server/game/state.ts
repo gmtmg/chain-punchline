@@ -6,8 +6,8 @@ import type {
 } from "../../shared/types";
 import {
   BEAT_DURATIONS,
-  revealCardIntroMs,
-  revealFieldMs,
+  REVEAL_CARD_INTRO,
+  REVEAL_FIELD,
   REACTION_WINDOW,
   MIN_PLAYERS,
   MAX_FIELD_LENGTH,
@@ -188,7 +188,7 @@ function revealNextCard(room: Room): void {
     room.code,
     "reveal-card-intro",
     () => revealNextField(room),
-    revealCardIntroMs(card.topic)
+    REVEAL_CARD_INTRO
   );
 }
 
@@ -234,7 +234,7 @@ function revealNextField(room: Room): void {
     room.code,
     "reveal-field",
     () => revealNextField(room),
-    revealFieldMs(card.fields[fieldIndex])
+    REVEAL_FIELD
   );
 }
 
