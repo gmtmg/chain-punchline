@@ -366,7 +366,7 @@ function showFloatingReaction(
 ) {
   const container = $("floating-reactions");
   const el = document.createElement("div");
-  el.className = "floating-reaction";
+  el.className = `floating-reaction type-${reactionType}`;
 
   const labels: Record<ReactionType, string> = {
     kusa: "草",
@@ -375,8 +375,8 @@ function showFloatingReaction(
   };
 
   el.innerHTML = `<span class="float-name">${esc(playerName)}</span> <span class="float-text">${labels[reactionType]}</span>`;
-  // Random horizontal position
-  el.style.left = `${20 + Math.random() * 60}%`;
+  // Random vertical position (slide goes right → left)
+  el.style.top = `${15 + Math.random() * 55}%`;
   container.appendChild(el);
   setTimeout(() => el.remove(), 2000);
 }
