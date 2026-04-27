@@ -1,8 +1,11 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { serveStatic } from "hono/bun";
 import { handleOpen, handleClose, handleMessage, type WSData } from "./ws";
 
 const app = new Hono();
+
+app.use("/*", cors({ origin: "*" }));
 
 // Serve bundled client files
 app.use("/*", serveStatic({ root: "./public" }));

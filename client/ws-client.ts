@@ -7,6 +7,9 @@ let handler: MessageHandler = () => {};
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
 function getWsUrl(): string {
+  if ((window as any).__WS_URL__) {
+    return (window as any).__WS_URL__;
+  }
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
   return `${proto}//${location.host}`;
 }

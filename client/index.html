@@ -7,6 +7,11 @@
   <link rel="stylesheet" href="styles.css?v=6" />
 </head>
 <body>
+  <!-- 広告枠: ページ上部バナー -->
+  <div class="ad-slot ad-slot-top">
+    <span class="ad-placeholder">広告</span>
+  </div>
+
   <div id="app">
     <!-- Lobby -->
     <div id="screen-lobby" class="screen active">
@@ -125,6 +130,10 @@
     <div id="screen-results" class="screen">
       <h2 class="section-title">結果発表</h2>
       <div id="results-list" class="results-list"></div>
+      <!-- 広告枠: リザルト画面下部 -->
+      <div class="ad-slot ad-slot-result">
+        <span class="ad-placeholder">広告</span>
+      </div>
       <button id="btn-back-lobby" class="btn btn-primary" style="display:none">ロビーに戻る</button>
     </div>
   </div>
@@ -143,6 +152,7 @@
     </div>
   </div>
 
+  <script>window.__WS_URL__ = "wss://xxxxx.up.railway.app";</script>
   <script src="main.js?v=6"></script>
 </body>
 </html>
