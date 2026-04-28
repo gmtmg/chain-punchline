@@ -41,7 +41,7 @@ export function createRoom(hostId: string, hostName: string): Room {
     writingState: null,
     revealState: null,
     usedTopics: new Set(),
-    beatLevel: 1,
+    beatLevel: 0,
     gameMode: "card",
   };
   rooms.set(code, room);

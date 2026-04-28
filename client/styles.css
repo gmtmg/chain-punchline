@@ -33,9 +33,14 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+body {
+  display: flex;
+  flex-direction: column;
+}
 
 #app {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
@@ -465,6 +470,7 @@ input[type="text"]::placeholder {
 }
 
 .beat-level-btn {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -475,8 +481,22 @@ input[type="text"]::placeholder {
   background: var(--surface);
   cursor: pointer;
   transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
-  min-width: 90px;
+  min-width: 80px;
   font-family: var(--font);
+}
+
+.beat-level-badge {
+  position: absolute;
+  top: -10px;
+  right: -4px;
+  font-size: 0.6rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--cyan), var(--green));
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 20px;
+  box-shadow: 0 2px 6px rgba(0, 201, 219, 0.3);
+  white-space: nowrap;
 }
 
 .beat-level-btn:active:not(:disabled) {
@@ -1137,7 +1157,7 @@ input[type="text"]::placeholder {
 /* ══════════════════════
    AD SLOTS
    ══════════════════════ */
-.ad-slot {
+.promo-box {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
@@ -1150,18 +1170,18 @@ input[type="text"]::placeholder {
   overflow: hidden;
 }
 
-.ad-slot-top {
-  position: relative;
+.promo-box-top {
+  flex-shrink: 0;
   z-index: 2;
   margin-top: 8px;
 }
 
-.ad-slot-result {
+.promo-box-result {
   margin: 16px 0;
   min-height: 100px;
 }
 
-.ad-placeholder {
+.promo-label {
   font-size: 0.8rem;
   font-weight: 700;
   color: #ccc;

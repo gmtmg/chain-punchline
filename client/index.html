@@ -8,8 +8,8 @@
 </head>
 <body>
   <!-- 広告枠: ページ上部バナー -->
-  <div class="ad-slot ad-slot-top">
-    <span class="ad-placeholder">広告</span>
+  <div class="promo-box promo-box-top">
+    <span class="promo-label">広告</span>
   </div>
 
   <div id="app">
@@ -72,7 +72,13 @@
       <h2 class="section-title">ビートレベル選択</h2>
       <p class="beat-select-desc">制限時間を選んでね！</p>
       <div class="beat-level-btns">
-        <button class="beat-level-btn selected" data-level="1">
+        <button class="beat-level-btn selected" data-level="0">
+          <span class="beat-level-badge">おすすめ</span>
+          <span class="beat-level-num">Lv.0</span>
+          <span class="beat-level-time">12秒</span>
+          <span class="beat-level-label">はじめて</span>
+        </button>
+        <button class="beat-level-btn" data-level="1">
           <span class="beat-level-num">Lv.1</span>
           <span class="beat-level-time">8秒</span>
           <span class="beat-level-label">のんびり</span>
@@ -131,8 +137,8 @@
       <h2 class="section-title">結果発表</h2>
       <div id="results-list" class="results-list"></div>
       <!-- 広告枠: リザルト画面下部 -->
-      <div class="ad-slot ad-slot-result">
-        <span class="ad-placeholder">広告</span>
+      <div class="promo-box promo-box-result">
+        <span class="promo-label">広告</span>
       </div>
       <button id="btn-back-lobby" class="btn btn-primary" style="display:none">ロビーに戻る</button>
     </div>
@@ -152,7 +158,7 @@
     </div>
   </div>
 
-  <script>window.__WS_URL__ = "wss://xxxxx.up.railway.app";</script>
+  <script>window.__WS_URL__ = "wss://chain-punchline-production-81ec.up.railway.app";</script>
   <script src="main.js?v=6"></script>
 </body>
 </html>

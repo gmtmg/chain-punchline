@@ -53,7 +53,7 @@ export interface Room {
   writingState: WritingState | null;
   revealState: RevealState | null;
   usedTopics: Set<string>;
-  beatLevel: 1 | 2 | 3;
+  beatLevel: 0 | 1 | 2 | 3;
   gameMode: GameMode;
 }
 
@@ -72,7 +72,7 @@ export interface JoinRoomMsg {
 
 export interface StartGameMsg {
   type: "start_game";
-  beatLevel: 1 | 2 | 3;
+  beatLevel: 0 | 1 | 2 | 3;
 }
 
 export interface SubmitFieldMsg {
@@ -94,7 +94,7 @@ export interface BeatSelectMsg {
 
 export interface BeatPreviewMsg {
   type: "beat_preview";
-  beatLevel: 1 | 2 | 3;
+  beatLevel: 0 | 1 | 2 | 3;
 }
 
 export interface GameModeSelectMsg {
@@ -224,7 +224,7 @@ export interface CountdownMsg {
 
 export interface BeatPreviewBroadcastMsg {
   type: "beat_preview";
-  beatLevel: 1 | 2 | 3;
+  beatLevel: 0 | 1 | 2 | 3;
 }
 
 export interface GameModeSelectStartMsg {

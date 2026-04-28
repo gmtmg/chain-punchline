@@ -490,6 +490,16 @@ export function stopAllBgm() {
 // K=kick, S=snare, H=hihat, KH/SH=combo, SC=チェケチェケ(4hit), sc=チェケ(2hit)
 type BeatHit = "K" | "S" | "H" | "KH" | "SH" | "SC" | "sc" | null;
 
+// Lv0: Super chill lo-fi (12s) — minimal, relaxed groove
+const PATTERN_LV0: BeatHit[] = [
+  // Bar 1: sparse kick + hihat
+  "KH", null, null, null, "SH", null, null, null,
+  null,  null, "KH", null, "SH", null, null, null,
+  // Bar 2: same relaxed feel → soft scratch
+  "KH", null, null, null, "SH", null, null, null,
+  null,  null, "KH", null, "sc", null, "SC", null,
+];
+
 // Lv1: Chill boom-bap (8s) — spacious groove, チェケチェケ at tail
 const PATTERN_LV1: BeatHit[] = [
   // Bar 1: classic boom-bap
@@ -520,7 +530,8 @@ const PATTERN_LV3: BeatHit[] = [
   "KH", "H",  "K",  "H",  "sc", null, "SC", null,
 ];
 
-const BEAT_PATTERNS: Record<1 | 2 | 3, BeatHit[]> = {
+const BEAT_PATTERNS: Record<0 | 1 | 2 | 3, BeatHit[]> = {
+  0: PATTERN_LV0,
   1: PATTERN_LV1,
   2: PATTERN_LV2,
   3: PATTERN_LV3,
@@ -528,7 +539,7 @@ const BEAT_PATTERNS: Record<1 | 2 | 3, BeatHit[]> = {
 
 // BPM so that 2 bars of 4/4 = desired seconds
 // 2 bars = 8 beats; seconds = 8 * (60/BPM)
-const BEAT_BPM: Record<1 | 2 | 3, number> = { 1: 60, 2: 80, 3: 120 };
+const BEAT_BPM: Record<0 | 1 | 2 | 3, number> = { 0: 40, 1: 60, 2: 80, 3: 120 };
 
 function triggerScratch(time: number, hits: number) {
   const gap = 0.065; // interval between each チェ/ケ
@@ -555,7 +566,7 @@ function handleBeatHit(time: number, hit: BeatHit) {
   if (hit === "sc") triggerScratch(time, 2); // チェケ
 }
 
-function createBeatSequence(level: 1 | 2 | 3): Tone.Sequence {
+function createBeatSequence(level: 0 | 1 | 2 | 3): Tone.Sequence {
   const pattern = BEAT_PATTERNS[level];
   return new Tone.Sequence(
     (time, hit) => handleBeatHit(time, hit),
@@ -564,7 +575,7 @@ function createBeatSequence(level: 1 | 2 | 3): Tone.Sequence {
   );
 }
 
-export function playWritingBeat(level: 1 | 2 | 3) {
+export function playWritingBeat(level: 0 | 1 | 2 | 3) {
   if (!audioInitialized) return;
   if (writingBeatPlaying) stopWritingBeat();
   if (currentBgm) stopAllBgm();
@@ -600,7 +611,7 @@ export function stopWritingBeat() {
   writingBeatPlaying = false;
 }
 
-export function previewBeat(level: 1 | 2 | 3) {
+export function previewBeat(level: 0 | 1 | 2 | 3) {
   if (!audioInitialized) return;
   stopPreview();
   if (currentBgm) stopAllBgm();

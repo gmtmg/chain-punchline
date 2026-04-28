@@ -13,7 +13,7 @@ let selectedAnswerId = "";
 let reactionBudget = { kusa: 3, warota: 2, kusawarota: 1 };
 let currentRevealCardId = ""; // track which card is being revealed for reactions
 let audioNotified = false; // true after user dismissed audio modal
-let selectedBeatLevel: 1 | 2 | 3 = 1;
+let selectedBeatLevel: 0 | 1 | 2 | 3 = 0;
 let selectedGameMode: GameMode = "card";
 let currentGameMode: GameMode = "card";
 let previewTimerInterval: ReturnType<typeof setInterval> | null = null;
@@ -143,7 +143,7 @@ function setupGameMode() {
 }
 
 // ── Screen: Beat Select ──
-function startPreviewTimerLoop(level: 1 | 2 | 3) {
+function startPreviewTimerLoop(level: 0 | 1 | 2 | 3) {
   stopPreviewTimerLoop();
   const durationMs = BEAT_DURATIONS[level];
   const runOnce = () => startPreviewBar("beat-timer-fill", durationMs);
@@ -160,10 +160,10 @@ function stopPreviewTimerLoop() {
 
 function showBeatSelectScreen() {
   // Reset selection UI
-  selectedBeatLevel = 1;
+  selectedBeatLevel = 0;
   document.querySelectorAll(".beat-level-btn").forEach((b) => {
     b.classList.remove("selected");
-    if ((b as HTMLElement).dataset.level === "1") b.classList.add("selected");
+    if ((b as HTMLElement).dataset.level === "0") b.classList.add("selected");
   });
 
   if (isHost) {
@@ -182,9 +182,9 @@ function showBeatSelectScreen() {
 
   stopAllBgm();
   showScreen("screen-beat-select");
-  // Auto-play Lv1 preview with timer bar
-  previewBeat(1);
-  startPreviewTimerLoop(1);
+  // Auto-play Lv0 preview with timer bar
+  previewBeat(0);
+  startPreviewTimerLoop(0);
 }
 
 function setupBeatSelect() {
@@ -192,7 +192,7 @@ function setupBeatSelect() {
   btns.forEach((btn) => {
     btn.addEventListener("click", () => {
       if (!isHost) return;
-      const level = Number((btn as HTMLElement).dataset.level) as 1 | 2 | 3;
+      const level = Number((btn as HTMLElement).dataset.level) as 0 | 1 | 2 | 3;
       send({ type: "beat_preview", beatLevel: level });
     });
   });
@@ -304,25 +304,31 @@ function renderWritingScreen(msg: Extract<ServerMessage, { type: "writing_start"
       )
       .join("");
 
-    // Card selection (highlight only, submit via button)
+    // Card selection — tap to select and auto-submit
     grid.querySelectorAll(".answer-card").forEach((btn) => {
       btn.addEventListener("click", () => {
         if (hasSubmittedThisRound) return;
         const aid = (btn as HTMLElement).dataset.answerId!;
-        if (selectedAnswerId === aid) {
-          selectedAnswerId = "";
-          btn.classList.remove("selected");
-        } else {
-          grid.querySelectorAll(".answer-card").forEach((c) => c.classList.remove("selected"));
-          selectedAnswerId = aid;
-          btn.classList.add("selected");
-        }
-        ($("btn-submit-field") as HTMLButtonElement).disabled = !selectedAnswerId;
+        selectedAnswerId = aid;
+        grid.querySelectorAll(".answer-card").forEach((c) => c.classList.remove("selected"));
+        btn.classList.add("selected");
+        // Auto-submit immediately
+        send({ type: "submit_field", cardId: currentCardId, answerId: selectedAnswerId });
+        hasSubmittedThisRound = true;
+        document.querySelectorAll(".answer-card").forEach((card) => {
+          (card as HTMLButtonElement).disabled = true;
+        });
       });
     });
   }
 
-  ($("btn-submit-field") as HTMLButtonElement).disabled = true;
+  // Hide submit button in card mode, show in free mode
+  if (msg.gameMode === "card") {
+    $("btn-submit-field").style.display = "none";
+  } else {
+    $("btn-submit-field").style.display = "";
+    ($("btn-submit-field") as HTMLButtonElement).disabled = true;
+  }
   $("writing-progress").textContent = "";
 
   startTimerBar("writing-timer-fill", msg.deadline);
@@ -539,7 +545,8 @@ function onMessage(msg: ServerMessage) {
       // Derive beat level from deadline for guests
       if (msg.deadline <= 4_000) selectedBeatLevel = 3;
       else if (msg.deadline <= 6_000) selectedBeatLevel = 2;
-      else selectedBeatLevel = 1;
+      else if (msg.deadline <= 8_000) selectedBeatLevel = 1;
+      else selectedBeatLevel = 0;
       stopPreviewTimerLoop();
       stopAllBgm();
       playWritingBeat(selectedBeatLevel);

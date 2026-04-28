@@ -1,5 +1,6 @@
 import type { ServerWebSocket } from "bun";
 import type { ClientMessage, ServerMessage, GameMode } from "../shared/types";
+import type { BeatLevel } from "../shared/constants";
 import {
   createRoom,
   joinRoom,
@@ -195,8 +196,8 @@ export function handleMessage(
         send(ws, { type: "error", message: "ホストのみ開始できます" });
         return;
       }
-      const beatLevel = msg.beatLevel || 1;
-      const err = startGame(room, beatLevel as 1 | 2 | 3);
+      const beatLevel = msg.beatLevel ?? 0;
+      const err = startGame(room, beatLevel as BeatLevel);
       if (err) send(ws, { type: "error", message: err });
       break;
     }
