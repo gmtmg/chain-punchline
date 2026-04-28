@@ -17,7 +17,7 @@ let selectedBeatLevel: 0 | 1 | 2 | 3 = 0;
 let selectedGameMode: GameMode = "card";
 let currentGameMode: GameMode = "card";
 let previewTimerInterval: ReturnType<typeof setInterval> | null = null;
-let freeAutoSubmitTimer: ReturnType<typeof setTimeout> | null = null;
+let autoSubmitTimer: ReturnType<typeof setTimeout> | null = null;
 
 // ── DOM Helpers ──
 const $ = (id: string) => document.getElementById(id)!;
@@ -232,9 +232,9 @@ function setupWriting() {
 
 function renderWritingScreen(msg: Extract<ServerMessage, { type: "writing_start" }>) {
   // Clear any pending auto-submit from previous round
-  if (freeAutoSubmitTimer) {
-    clearTimeout(freeAutoSubmitTimer);
-    freeAutoSubmitTimer = null;
+  if (autoSubmitTimer) {
+    clearTimeout(autoSubmitTimer);
+    autoSubmitTimer = null;
   }
 
   currentCardId = msg.cardId;
@@ -283,7 +283,7 @@ function renderWritingScreen(msg: Extract<ServerMessage, { type: "writing_start"
     setTimeout(() => input.focus(), 100);
 
     // Auto-submit whatever is typed when time runs out
-    freeAutoSubmitTimer = setTimeout(() => {
+    autoSubmitTimer = setTimeout(() => {
       if (hasSubmittedThisRound) return;
       const text = input.value.trim();
       if (text && text.length <= MAX_FIELD_LENGTH) {
@@ -304,22 +304,33 @@ function renderWritingScreen(msg: Extract<ServerMessage, { type: "writing_start"
       )
       .join("");
 
-    // Card selection — tap to select and auto-submit
+    // Card selection — tap to select, auto-submit when time runs out
     grid.querySelectorAll(".answer-card").forEach((btn) => {
       btn.addEventListener("click", () => {
         if (hasSubmittedThisRound) return;
         const aid = (btn as HTMLElement).dataset.answerId!;
-        selectedAnswerId = aid;
-        grid.querySelectorAll(".answer-card").forEach((c) => c.classList.remove("selected"));
-        btn.classList.add("selected");
-        // Auto-submit immediately
+        if (selectedAnswerId === aid) {
+          selectedAnswerId = "";
+          btn.classList.remove("selected");
+        } else {
+          grid.querySelectorAll(".answer-card").forEach((c) => c.classList.remove("selected"));
+          selectedAnswerId = aid;
+          btn.classList.add("selected");
+        }
+      });
+    });
+
+    // Auto-submit selected card when time runs out (skip if nothing selected)
+    autoSubmitTimer = setTimeout(() => {
+      if (hasSubmittedThisRound) return;
+      if (selectedAnswerId) {
         send({ type: "submit_field", cardId: currentCardId, answerId: selectedAnswerId });
         hasSubmittedThisRound = true;
         document.querySelectorAll(".answer-card").forEach((card) => {
           (card as HTMLButtonElement).disabled = true;
         });
-      });
-    });
+      }
+    }, msg.deadline - 500);
   }
 
   // Hide submit button in card mode, show in free mode
