@@ -369,13 +369,13 @@ function setupInstruments() {
   beatScratchFilter = new Tone.Filter({
     frequency: 1500,
     type: "bandpass",
-    Q: 6,
+    Q: 4,
   }).toDestination();
 
   beatScratch = new Tone.NoiseSynth({
     noise: { type: "brown" },
     envelope: { attack: 0.005, decay: 0.06, sustain: 0, release: 0.02 },
-    volume: -2,
+    volume: 8,
   }).connect(beatScratchFilter);
 
   // ══════════════════════════════════════
@@ -490,14 +490,20 @@ export function stopAllBgm() {
 // K=kick, S=snare, H=hihat, KH/SH=combo, SC=チェケチェケ(4hit), sc=チェケ(2hit)
 type BeatHit = "K" | "S" | "H" | "KH" | "SH" | "SC" | "sc" | null;
 
-// Lv0: Super chill lo-fi (12s) — minimal, relaxed groove
+// Lv0: Chill but groovy (12s) — 4 bars at 80BPM, テンポ良くスクラッチで締め
 const PATTERN_LV0: BeatHit[] = [
-  // Bar 1: sparse kick + hihat
-  "KH", null, null, null, "SH", null, null, null,
-  null,  null, "KH", null, "SH", null, null, null,
-  // Bar 2: same relaxed feel → soft scratch
-  "KH", null, null, null, "SH", null, null, null,
-  null,  null, "KH", null, "sc", null, "SC", null,
+  // Bar 1: laid-back boom-bap
+  "KH", null, "H",  null, "SH", null, "H",  null,
+  null,  "H",  "KH", null, "SH", null, "H",  null,
+  // Bar 2: slight variation
+  "KH", null, "H",  null, "SH", null, "H",  "K",
+  null,  "H",  "KH", null, "SH", null, "H",  null,
+  // Bar 3: build up energy
+  "KH", null, "H",  null, "SH", null, "H",  null,
+  "K",   "H",  "KH", null, "SH", null, "H",  "K",
+  // Bar 4: groove → scratch ending
+  "KH", null, "H",  null, "SH", null, "H",  null,
+  null,  "H",  "KH", null, "sc", null, "SC", null,
 ];
 
 // Lv1: Chill boom-bap (8s) — spacious groove, チェケチェケ at tail
@@ -537,9 +543,10 @@ const BEAT_PATTERNS: Record<0 | 1 | 2 | 3, BeatHit[]> = {
   3: PATTERN_LV3,
 };
 
-// BPM so that 2 bars of 4/4 = desired seconds
-// 2 bars = 8 beats; seconds = 8 * (60/BPM)
-const BEAT_BPM: Record<0 | 1 | 2 | 3, number> = { 0: 40, 1: 60, 2: 80, 3: 120 };
+// BPM: Lv0 = 4 bars at 80BPM (12s), Lv1-3 = 2 bars
+// 2 bars = 8 beats: seconds = 8 * (60/BPM)
+// 4 bars = 16 beats: seconds = 16 * (60/BPM) → 80BPM = 12s
+const BEAT_BPM: Record<0 | 1 | 2 | 3, number> = { 0: 80, 1: 60, 2: 80, 3: 120 };
 
 function triggerScratch(time: number, hits: number) {
   const gap = 0.065; // interval between each チェ/ケ
