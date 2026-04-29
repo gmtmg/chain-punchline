@@ -53,6 +53,7 @@ export interface Room {
   writingState: WritingState | null;
   revealState: RevealState | null;
   usedTopics: Set<string>;
+  currentCategoryId: string;
   beatLevel: 0 | 1 | 2 | 3;
   gameMode: GameMode;
 }

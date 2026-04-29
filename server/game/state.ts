@@ -18,7 +18,7 @@ import type { BeatLevel } from "../../shared/constants";
 import { setRoomTimer, clearAllRoomTimers } from "./timer";
 import { createCards, getAssignments } from "./cards";
 import { tallyReactions } from "./scoring";
-import { getTopics } from "../data/prompts";
+import { pickCategory, getTopics } from "../data/prompts";
 import { drawAnswerCards } from "../data/answers";
 import { resetForNewGame } from "./room";
 
@@ -45,8 +45,12 @@ export function startGame(room: Room, beatLevel: BeatLevel = 1): string | null {
   room.beatLevel = beatLevel;
   resetForNewGame(room);
 
+  // Pick a random category for this game
+  const category = pickCategory();
+  room.currentCategoryId = category.id;
+
   const playerCount = room.players.size;
-  const topics = getTopics(playerCount, room.usedTopics);
+  const topics = getTopics(category.id, playerCount, room.usedTopics);
   createCards(room, topics);
 
   // 3-2-1 countdown then start
@@ -82,7 +86,7 @@ function startWritingRound(room: Room, round: number): void {
   if (!isFree) {
     const roomDealt = new Map<string, AnswerOption[]>();
     for (const [playerId] of assignments) {
-      const hand = drawAnswerCards(round);
+      const hand = drawAnswerCards(room.currentCategoryId, round);
       roomDealt.set(playerId, hand);
     }
     dealtCardsMap.set(room.code, roomDealt);
