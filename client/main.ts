@@ -346,6 +346,44 @@ function renderWritingScreen(msg: Extract<ServerMessage, { type: "writing_start"
   showScreen("screen-writing");
 }
 
+// ── TTS (Text-to-Speech) ──
+let ttsUnlocked = false;
+let jaVoice: SpeechSynthesisVoice | null = null;
+
+function pickJapaneseVoice() {
+  const voices = speechSynthesis.getVoices();
+  jaVoice = voices.find((v) => v.lang.startsWith("ja")) || null;
+}
+
+function unlockTTS() {
+  if (!("speechSynthesis" in window)) return;
+  // Load voices (Chrome fires voiceschanged async)
+  pickJapaneseVoice();
+  speechSynthesis.addEventListener("voiceschanged", pickJapaneseVoice);
+  // Warm-up silent utterance to unlock TTS on user gesture
+  const warmup = new SpeechSynthesisUtterance("");
+  warmup.volume = 0;
+  warmup.lang = "ja-JP";
+  speechSynthesis.speak(warmup);
+  ttsUnlocked = true;
+}
+
+function speakText(text: string, voice: "low" | "normal") {
+  if (!("speechSynthesis" in window) || !ttsUnlocked) return;
+  speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "ja-JP";
+  if (jaVoice) utterance.voice = jaVoice;
+  if (voice === "low") {
+    utterance.pitch = 0.5;
+    utterance.rate = 0.9;
+  } else {
+    utterance.pitch = 1.0;
+    utterance.rate = 1.0;
+  }
+  speechSynthesis.speak(utterance);
+}
+
 // ── Screen: Reveal ──
 function setupReveal() {
   const reactionArea = $("reaction-area");
@@ -626,7 +664,12 @@ function onMessage(msg: ServerMessage) {
       break;
     }
 
+    case "speak":
+      speakText(msg.text, msg.voice);
+      break;
+
     case "results":
+      speechSynthesis?.cancel();
       renderResults(msg);
       showScreen("screen-results");
       break;
@@ -664,6 +707,7 @@ function init() {
   $("btn-audio-ok").addEventListener("click", async () => {
     $("audio-modal").style.display = "none";
     audioNotified = true;
+    unlockTTS();
     await initAudio();
     playLobbyBgm();
   });

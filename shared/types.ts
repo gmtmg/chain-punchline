@@ -201,6 +201,12 @@ export interface RevealCardDoneMsg {
   cardIndex: number;
 }
 
+export interface SpeakMsg {
+  type: "speak";
+  text: string;
+  voice: "low" | "normal";
+}
+
 export interface ResultsMsg {
   type: "results";
   rankings: {
@@ -249,6 +255,7 @@ export type ServerMessage =
   | RevealFieldMsg
   | ReactionMsg
   | RevealCardDoneMsg
+  | SpeakMsg
   | ResultsMsg
   | BeatSelectStartMsg
   | BeatPreviewBroadcastMsg
