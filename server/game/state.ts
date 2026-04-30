@@ -6,6 +6,8 @@ import type {
 } from "../../shared/types";
 import {
   BEAT_DURATIONS,
+  REVEAL_CARD_INTRO,
+  REVEAL_FIELD,
   REACTION_WINDOW,
   MIN_PLAYERS,
   MAX_FIELD_LENGTH,
@@ -140,14 +142,6 @@ function endWritingRound(room: Room): void {
   }
 }
 
-// ── TTS Duration Estimation ──
-
-function estimateSpeechDuration(text: string, voice: "low" | "normal"): number {
-  // Japanese TTS: ~5-6 chars/sec normal, slightly slower for low pitch
-  const msPerChar = voice === "low" ? 250 : 200;
-  return Math.max(1000, text.length * msPerChar + 500);
-}
-
 // ── Reveal Phase ──
 
 function startReveal(room: Room): void {
@@ -185,7 +179,6 @@ function revealNextCard(room: Room): void {
 
   console.log(`[state] broadcasting reveal_card_start: card=${card.id}, topic=${card.topic}`);
 
-  // Step 1: Show topic
   broadcast(room.code, {
     type: "reveal_card_start",
     cardIndex,
@@ -195,16 +188,12 @@ function revealNextCard(room: Room): void {
     authorNames,
   });
 
-  // Step 2: After 2s, speak topic in low voice
-  const topicSpeechDuration = estimateSpeechDuration(card.topic, "low");
-  setRoomTimer(room.code, "speak-topic", () => {
-    broadcast(room.code, { type: "speak", text: card.topic, voice: "low" });
-
-    // Step 3: After speech ends + 2s, show first field
-    setRoomTimer(room.code, "post-topic-speech", () => {
-      revealNextField(room);
-    }, topicSpeechDuration + 2000);
-  }, 2000);
+  setRoomTimer(
+    room.code,
+    "reveal-card-intro",
+    () => revealNextField(room),
+    REVEAL_CARD_INTRO
+  );
 }
 
 function revealNextField(room: Room): void {
@@ -217,7 +206,7 @@ function revealNextField(room: Room): void {
   console.log(`[state] revealNextField: card=${cardIndex}, field=${fieldIndex}`);
 
   if (fieldIndex >= 3) {
-    // All fields revealed — reaction window
+    // All fields revealed for this card — reaction window
     console.log(`[state] card ${cardIndex} done → reaction window (${REACTION_WINDOW}ms)`);
     broadcast(room.code, {
       type: "reveal_card_done",
@@ -236,27 +225,21 @@ function revealNextField(room: Room): void {
   }
 
   const authorPlayer = room.players.get(card.authorIds[fieldIndex]);
-  const fieldText = card.fields[fieldIndex];
-  const speechDuration = estimateSpeechDuration(fieldText, "normal");
 
-  // Show field
   broadcast(room.code, {
     type: "reveal_field",
     cardIndex,
     fieldIndex,
-    text: fieldText,
+    text: card.fields[fieldIndex],
     authorName: authorPlayer?.name || "???",
   });
 
-  // After 0.5s, speak field in normal voice
-  setRoomTimer(room.code, `speak-field-${fieldIndex}`, () => {
-    broadcast(room.code, { type: "speak", text: fieldText, voice: "normal" });
-
-    // After speech ends + 0.5s, next field (or card done)
-    setRoomTimer(room.code, `post-field-speech-${fieldIndex}`, () => {
-      revealNextField(room);
-    }, speechDuration + 500);
-  }, 500);
+  setRoomTimer(
+    room.code,
+    "reveal-field",
+    () => revealNextField(room),
+    REVEAL_FIELD
+  );
 }
 
 // ── Results ──

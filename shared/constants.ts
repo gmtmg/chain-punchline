@@ -1,9 +1,9 @@
 // ── Timing (milliseconds) ──
 export type BeatLevel = 0 | 1 | 2 | 3;
 export const BEAT_DURATIONS: Record<BeatLevel, number> = { 0: 12_000, 1: 8_000, 2: 6_000, 3: 4_000 };
-export const REVEAL_CARD_INTRO = 2_000;
-export const REVEAL_FIELD = 3_000;
-export const REACTION_WINDOW = 4_000;
+export const REVEAL_CARD_INTRO = 9_000;
+export const REVEAL_FIELD = 5_000;
+export const REACTION_WINDOW = 8_000;
 
 // ── Game Settings ──
 export const MIN_PLAYERS = 2;

@@ -368,20 +368,111 @@ function unlockTTS() {
   ttsUnlocked = true;
 }
 
-function speakText(text: string, voice: "low" | "normal") {
+function stopTTS() {
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+}
+
+// Fire-and-forget: speak without waiting for completion
+function speakFireAndForget(text: string, voice: "low" | "normal") {
   if (!("speechSynthesis" in window) || !ttsUnlocked) return;
-  speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "ja-JP";
-  if (jaVoice) utterance.voice = jaVoice;
-  if (voice === "low") {
-    utterance.pitch = 0.5;
-    utterance.rate = 0.9;
-  } else {
-    utterance.pitch = 1.0;
-    utterance.rate = 1.0;
+  speechSynthesis.cancel(); // stop any previous speech
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = "ja-JP";
+  if (jaVoice) utt.voice = jaVoice;
+  utt.pitch = voice === "low" ? 0.5 : 1.0;
+  utt.rate = voice === "low" ? 0.9 : 1.0;
+  speechSynthesis.speak(utt);
+}
+
+// All clients use the SAME formula → identical timing across devices
+function estimateSpeechMs(text: string, voice: "low" | "normal"): number {
+  const msPerChar = voice === "low" ? 250 : 200;
+  return Math.max(1500, text.length * msPerChar + 500);
+}
+
+// ── Reveal Queue ──
+let revealQueue: ServerMessage[] = [];
+let revealPlaying = false;
+
+function enqueueReveal(msg: ServerMessage) {
+  revealQueue.push(msg);
+  if (!revealPlaying) playNextReveal();
+}
+
+function clearRevealQueue() {
+  revealQueue = [];
+  revealPlaying = false;
+  stopTTS();
+}
+
+function playNextReveal() {
+  if (revealQueue.length === 0) {
+    revealPlaying = false;
+    return;
   }
-  speechSynthesis.speak(utterance);
+  revealPlaying = true;
+  const msg = revealQueue.shift()!;
+
+  switch (msg.type) {
+    case "reveal_card_start": {
+      const m = msg as Extract<ServerMessage, { type: "reveal_card_start" }>;
+      stopTTS();
+      currentRevealCardId = `card-${m.cardIndex}`;
+      $("reveal-card-info").textContent = `${m.cardIndex + 1} / ${m.totalCards}`;
+      $("reveal-topic").textContent = m.topic;
+      const names = m.authorNames || ["???", "???", "???"];
+      $("reveal-fields").innerHTML = names
+        .map((_: string, i: number) =>
+          `<div class="reveal-field-row hidden" id="reveal-field-${i}">
+            <span class="reveal-field-text"></span>
+            <span class="reveal-field-author"></span>
+          </div>`
+        ).join("");
+      $("reaction-area").style.display = "none";
+      showScreen("screen-reveal");
+
+      // 2s → speak topic → estimated speech duration → 2s → next
+      const topicMs = estimateSpeechMs(m.topic, "low");
+      setTimeout(() => speakFireAndForget(m.topic, "low"), 2000);
+      setTimeout(playNextReveal, 2000 + topicMs + 2000);
+      break;
+    }
+
+    case "reveal_field": {
+      const m = msg as Extract<ServerMessage, { type: "reveal_field" }>;
+      const row = $(`reveal-field-${m.fieldIndex}`);
+      if (row) {
+        row.classList.remove("hidden");
+        row.classList.add("field-pop");
+        (row.querySelector(".reveal-field-text") as HTMLElement).textContent = m.text;
+        (row.querySelector(".reveal-field-author") as HTMLElement).textContent = m.authorName;
+      }
+      // 0.5s → speak answer → estimated speech duration → 0.5s → next
+      const fieldMs = estimateSpeechMs(m.text, "normal");
+      setTimeout(() => speakFireAndForget(m.text, "normal"), 500);
+      setTimeout(playNextReveal, 500 + fieldMs + 500);
+      break;
+    }
+
+    case "reveal_card_done":
+      $("reaction-area").style.display = "flex";
+      updateReactionButtons();
+      setTimeout(playNextReveal, 6000);
+      break;
+
+    case "results": {
+      const m = msg as Extract<ServerMessage, { type: "results" }>;
+      stopTTS();
+      revealPlaying = false;
+      renderResults(m);
+      showScreen("screen-results");
+      break;
+    }
+
+    default:
+      playNextReveal();
+      break;
+  }
 }
 
 // ── Screen: Reveal ──
@@ -608,49 +699,17 @@ function onMessage(msg: ServerMessage) {
         `${msg.submittedCount} / ${msg.totalCount} 人が提出`;
       break;
 
-    case "reveal_card_start": {
+    case "reveal_card_start":
       stopWritingBeat();
-      currentRevealCardId = `card-${msg.cardIndex}`;
-
-      $("reveal-card-info").textContent =
-        `${msg.cardIndex + 1} / ${msg.totalCards}`;
-      $("reveal-topic").textContent = msg.topic;
-      // One row per person, hidden until reveal_field arrives
-      const names = msg.authorNames || ["???", "???", "???"];
-      $("reveal-fields").innerHTML = names
-        .map(
-          (_name: string, i: number) =>
-            `<div class="reveal-field-row hidden" id="reveal-field-${i}">
-              <span class="reveal-field-text"></span>
-              <span class="reveal-field-author"></span>
-            </div>`
-        )
-        .join("");
-
-      $("reaction-area").style.display = "none";
-      showScreen("screen-reveal");
+      enqueueReveal(msg);
       break;
-    }
 
-    case "reveal_field": {
-      const row = $(`reveal-field-${msg.fieldIndex}`);
-      if (row) {
-        row.classList.remove("hidden");
-        row.classList.add("field-pop");
-        const textEl = row.querySelector(".reveal-field-text") as HTMLElement;
-        const authorEl = row.querySelector(
-          ".reveal-field-author"
-        ) as HTMLElement;
-        textEl.textContent = msg.text;
-        authorEl.textContent = msg.authorName;
-      }
+    case "reveal_field":
+      enqueueReveal(msg);
       break;
-    }
 
     case "reveal_card_done":
-      // Show reaction buttons during reaction window
-      $("reaction-area").style.display = "flex";
-      updateReactionButtons();
+      enqueueReveal(msg);
       break;
 
     case "reaction": {
@@ -665,13 +724,10 @@ function onMessage(msg: ServerMessage) {
     }
 
     case "speak":
-      speakText(msg.text, msg.voice);
       break;
 
     case "results":
-      speechSynthesis?.cancel();
-      renderResults(msg);
-      showScreen("screen-results");
+      enqueueReveal(msg);
       break;
   }
 }
